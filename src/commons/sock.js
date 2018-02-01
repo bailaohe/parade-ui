@@ -1,17 +1,31 @@
 import io from 'socket.io-client';
 
-export default class ExecSock {
-    constructor(uri) {
-        this.uri = uri
-        this.io = io.connect(uri);
+export default class SocketChannel {
+
+    static EXEC = new SocketChannel('/exec', (sio, answer) => {
+        console.log('get answer: ' + answer)
+    }, (sio, update) => {
+        console.log('get update: ' + update)
+    });
+
+    constructor(namespace, on_reply, on_update) {
+        this.namespace = namespace;
+        this.on_reply = on_reply;
+        this.on_update = on_update;
     }
 
-    static init(execId) {
-        sio = new ExecSock('http://localhost:9999/exec').io
+    open(query) {
+        const socket = io.connect('http://localhost:9999' + this.namespace)
+        socket.on('connect', function () {
+            socket.emit('query', query)
+        });
 
-        // enter the room of a execution
-        sio.on('connect', function(){
-            sio.emit('open', execId)
+        socket.on('reply', (answer) => {
+            this.on_reply(socket, answer)
+        });
+
+        socket.on('update', (update) => {
+            this.on_update(socket, update)
         });
     }
 }

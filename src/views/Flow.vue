@@ -51,6 +51,7 @@
 <script>
 import Vue from "vue";
 import API from "@/commons/api";
+import SocketChannel from "@/commons/sock";
 import FlowDetail from "@/views/FlowDetail";
 import io from 'socket.io-client';
  
@@ -73,10 +74,7 @@ export default {
         .issue({ flow: flow.name })
         .then(response => {
           const execId = response.data;
-          const socket = io.connect('http://127.0.0.1:9999/exec-' + execId);
-          socket.on('task-success', function(data){
-            console.log(data)
-          });
+          SocketChannel.EXEC.open(execId)
           this.execPending = false;
           this.$router.push({ name: "ExecDetail", params: { execId: execId } });
         })
