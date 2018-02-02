@@ -65,7 +65,8 @@ export default {
       });
     },
     execState() {
-      return this.execSnap
+      let curState = this.execId != null ? this.$store.getters.getExecuting(this.execId) : {}
+      return curState
     }
   },
   methods: {
