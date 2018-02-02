@@ -1,6 +1,6 @@
 import io from 'socket.io-client';
 import API from "@/commons/api";
-// import store from '@/store'
+import Bus from '@/commons/bus'
 
 
 export default class SocketChannel {
@@ -20,6 +20,7 @@ export default class SocketChannel {
                 id: execId,
                 data: executing
             })
+            Bus.$emit('execEvent', update)
           });  
     });
 

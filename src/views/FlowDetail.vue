@@ -17,6 +17,7 @@
 
 <script>
 import API from "@/commons/api";
+import Bus from "@/commons/bus";
 import G6 from "@antv/g6";
 import Plugins from "@antv/g6-plugins";
 
@@ -46,6 +47,8 @@ export default {
         children: "deps",
         label: "name"
       },
+
+      graph: null
     };
   },
   computed: {
@@ -64,23 +67,12 @@ export default {
         };
       });
     },
-    execState() {
-      let curState = this.execId != null ? this.$store.getters.getExecuting(this.execId) : {}
-      return curState
-    }
-  },
-  methods: {
-    refreshGraph() {
-      // 第三步：设置数据
+    taskGraph() {
       var nodes = this.flow.tasks.map(task => {
         return {
           id: task,
           label: task,
           shape: "rect",
-          color: this.execState[task] == 2 ? 'blue' :
-                 this.execState[task] == 3 ? 'green' :
-                 this.execState[task] == 4 ? 'red' :
-                 this.execState[task] == 5 ? 'yellow' : 'grey'
         };
       });
 
@@ -89,9 +81,6 @@ export default {
         id: flowId,
         label: flowId,
         shape: "rect",
-        color: this.execState[flowId] == 3 ? 'green':
-               this.execState[flowId] == 4 ? 'red' :
-               this.execState[flowId] == 5 ? 'yellow' : 'grey'
       });
 
       var edges = Array.concat(
@@ -106,7 +95,22 @@ export default {
         })
       );
 
+      return {
+        "source": {
+          "nodes": nodes,
+          "edges": edges
+        }
+      }
+    },
+    execState() {
+      let curState = this.execId != null ? this.$store.getters.getExecuting(this.execId) : {}
+      return curState
+    }
+  },
+  methods: {
+    initGraph() {
       // 第四步：配置G6画布
+      const Util = G6.Util
       const miniMap = new Plugins["tool.minimap"]();
       const dagre = new Plugins["layout.dagre"]({
         rankdir: "TB",
@@ -123,28 +127,86 @@ export default {
         plugins: [miniMap, dagre]
       });
       net.changeMode("drag");
-
-      net.source(nodes, edges);
+      net.read(Util.clone(this.taskGraph));
       net.render();
+      this.graph = net
+    },
+    refreshGraph() {
+      if (this.graph != null) {
+        const Util = G6.Util
+        this.graph.clear();
+        this.graph.read(Util.clone(this.taskGraph));
+
+        let self = this
+        this.graph.node().color(n => {
+          const task = n.id
+          if (task != self.flow.name) {
+            return self.execState[task] == 2 ? 'blue' :
+                 self.execState[task] == 3 ? 'green' :
+                 self.execState[task] == 4 ? 'red' :
+                 self.execState[task] == 5 ? 'yellow' : 'grey'
+          }
+          return self.execState[task] == 3 ? 'green':
+               self.execState[task] == 4 ? 'red' :
+               self.execState[task] == 5 ? 'yellow' : 'grey'
+        })
+        this.graph.render();
+      }
     }
+
   },
   mounted() {
+    Bus.$on("execEvent", payload => {
+      if (payload.event == 'task-started') {
+        this.$notify({
+          title: 'task started',
+          message: `task [${payload.task}] started`,
+          type: 'info'
+        })
+      } else if (payload.event == 'task-succeeded') {
+        this.$notify({
+          title: 'task succeeded',
+          message: `task [${payload.task}] succeeded`,
+          type: 'success'
+        })
+      } else if (payload.event == 'task-failed') {
+        this.$notify({
+          title: 'task failed',
+          message: `task [${payload.task}] failed`,
+          type: 'error'
+        })
+      } else if (payload.event == 'task-cancelled') {
+        this.$notify({
+          title: 'task cancelled',
+          message: `task [${payload.task}] cancelled`,
+          type: 'error'
+        })
+      }
+      this.refreshGraph()
+    })
+
     if (this.execId == null) {
       API.LOAD_FLOW.issue({ flow: this.flowId }).then(response => {
         this.flow = response.data;
-        this.refreshGraph()
+        this.initGraph()
         this.flowLoading = false
       });
     } else {
       API.LOAD_EXEC.issue({ id: this.execId }).then(response => {
         this.flow = response.data.flow;
+        this.initGraph()
+        this.flowLoading = false
 
+        let executing = {}
         for (let t of response.data.exec.tasks) {
-          this.execSnap[t['task']] = t['status']
+          executing[t['task']] = t['status']
         }
-        this.execSnap[this.flow.name] = response.data.exec.flow['status']
-        this.refreshGraph();
-        this.flowLoading = false;
+        executing[response.data.flow.name] = response.data.exec.flow['status']
+        vm.$store.commit("updateExecuting", {
+            id: this.execId,
+            data: executing
+        })
+        Bus.$emit('execEvent', {event: 'refresh'})
       });  
     }
   }
