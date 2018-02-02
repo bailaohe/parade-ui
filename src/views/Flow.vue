@@ -6,7 +6,7 @@
     style="width: 100%">
     <el-table-column type="expand">
       <template scope="props">
-          <flow-detail :flow="props.row.name"></flow-detail>
+          <flow-detail :flow-id="props.row.name"></flow-detail>
       </template>
     </el-table-column>
     <el-table-column
@@ -34,15 +34,15 @@
           v-loading="execPending"
           size="small"
           type="success"
-          @click="handleFlowExec(scope.$index, scope.row)">Run</el-button>
-        <el-button
+          @click="execFlow(scope.$index, scope.row)">Run</el-button>
+        <!-- <el-button
           size="small"
           type="info"
-          @click="handleFlowEdit(scope.$index, scope.row)">Edit</el-button>
+          @click="handleFlowEdit(scope.$index, scope.row)">Edit</el-button> -->
         <el-button
           size="small"
           type="danger"
-          @click="handleFlowDelete(scope.$index, scope.row)">Delete</el-button>
+          @click="deleteFlow(scope.$index, scope.row)">Delete</el-button>
       </template>
     </el-table-column>
   </el-table>
@@ -53,8 +53,7 @@ import Vue from "vue";
 import API from "@/commons/api";
 import SocketChannel from "@/commons/sock";
 import FlowDetail from "@/views/FlowDetail";
-import io from 'socket.io-client';
- 
+import io from "socket.io-client";
 
 export default {
   components: {
@@ -65,30 +64,25 @@ export default {
       if (expanded) {
       }
     },
-    getTaskList(flow) {
-      flowDetail = this.flowDetails[flow];
-    },
-    handleFlowExec(idx, flow) {
+    execFlow(idx, flow) {
       this.execPending = true;
-      API.EXEC_FLOW
-        .issue({ flow: flow.name })
+      API.EXEC_FLOW.issue({ flow: flow.name })
         .then(response => {
           const execId = response.data;
-          SocketChannel.EXEC.open(execId)
+          SocketChannel.EXEC.open(execId);
           this.execPending = false;
-          this.$router.push({ name: "ExecDetail", params: { execId: execId } });
+          this.$router.push({ name: "ExecDetail", params: { flowId: flow.name, execId: execId } });
         })
         .catch(error => {
           this.execPending = false;
         });
     },
-    handleFlowDelete(idx, flow) {
+    deleteFlow(idx, flow) {
       API.DELETE_FLOW.issue({ flow: flow.name }).then(response => {
-        debugger
-        this.refreshFlowList()
+        this.listFlow();
       });
     },
-    refreshFlowList() {
+    listFlow() {
       this.listLoading = true;
       this.flows = [];
       API.LIST_FLOW.issue().then(response => {
@@ -112,7 +106,7 @@ export default {
     };
   },
   created() {
-    this.refreshFlowList()
+    this.listFlow();
   }
 };
 </script>

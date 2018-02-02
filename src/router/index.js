@@ -3,7 +3,7 @@ import Router from 'vue-router'
 import Login from '@/views/Login'
 import Index from '@/views/Index'
 import Flow from '@/views/Flow'
-import ExecDetail from '@/views/ExecDetail'
+import FlowDetail from '@/views/FlowDetail'
 
 Vue.use(Router)
 
@@ -32,7 +32,7 @@ export default new Router({
         {
           path: 'exec/:execId',
           name: 'ExecDetail',
-          component: ExecDetail,
+          component: FlowDetail,
           props: true,
         }
       ]

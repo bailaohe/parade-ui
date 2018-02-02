@@ -3,9 +3,9 @@ import io from 'socket.io-client';
 export default class SocketChannel {
 
     static EXEC = new SocketChannel('/exec', (sio, answer) => {
-        console.log('get answer: ' + answer)
+        console.log('listen on executing: ' + answer)
     }, (sio, update) => {
-        console.log('get update: ' + update)
+        console.log('get executing event: ' + JSON.stringify(update))
     });
 
     constructor(namespace, on_reply, on_update) {
