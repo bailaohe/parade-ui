@@ -4,12 +4,20 @@ import Vuex from 'vuex'
 Vue.use(Vuex)
 
 const state = {
+  activeIndex: 'Flow',
   executing: {},
 }
 
 const getters = {
   getExecuting: (state) => (id) => {
     return (id in state.executing) ? state.executing[id] : {}
+  },
+  activeIndexName: (state) => {
+    const indexMap = {
+      'Flow': 'Flows',
+      'Exec': 'Executions'
+    }
+    return indexMap[state.activeIndex]
   }
 }
 
@@ -27,6 +35,9 @@ const mutations = {
     if (id in state.executing) {
       state.executing[id] = {}
     }
+  },
+  setActiveClass(state, newClass) {
+    state.activeClass = newClass
   }
 }
 

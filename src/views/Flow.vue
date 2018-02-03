@@ -1,8 +1,8 @@
 <template>
+<div>
   <el-table
     v-loading="listLoading"
     :data="flows"
-    @expand="handleExpandChange"
     style="width: 100%">
     <el-table-column type="expand">
       <template scope="props">
@@ -46,6 +46,7 @@
       </template>
     </el-table-column>
   </el-table>
+</div>
 </template>
 
 <script>
@@ -60,10 +61,6 @@ export default {
     FlowDetail
   },
   methods: {
-    handleExpandChange(flow, expanded) {
-      if (expanded) {
-      }
-    },
     execFlow(idx, flow) {
       this.execPending = true;
       API.EXEC_FLOW.issue({ flow: flow.name })
@@ -78,9 +75,16 @@ export default {
         });
     },
     deleteFlow(idx, flow) {
-      API.DELETE_FLOW.issue({ flow: flow.name }).then(response => {
-        this.listFlow();
-      });
+      this.$confirm(`Do you want to delete this flow: ${flow.name}?`, 'Warning', {
+          confirmButtonText: 'Yes',
+          cancelButtonText: 'Cancel',
+          type: 'warning'
+        }).then(() => {
+          API.DELETE_FLOW.issue({ flow: flow.name }).then(response => {
+            this.listFlow();
+          });
+        }).catch(() => {
+        });
     },
     listFlow() {
       this.listLoading = true;
@@ -112,37 +116,4 @@ export default {
 </script>
 
 <style>
-.demo-table-expand {
-  font-size: 0;
-}
-.demo-table-expand label {
-  width: 90px;
-  color: #99a9bf;
-}
-.demo-table-expand .el-form-item {
-  margin-right: 0;
-  margin-bottom: 0;
-  width: 50%;
-}
-
-.text {
-  font-size: 14px;
-}
-
-.item {
-  margin-bottom: 18px;
-}
-
-.clearfix:before,
-.clearfix:after {
-  display: table;
-  content: "";
-}
-.clearfix:after {
-  clear: both;
-}
-
-/* .box-card { */
-/* width: 480px; */
-/* } */
 </style>

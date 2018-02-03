@@ -1,18 +1,22 @@
 <template>
+  <div>
   <el-tabs 
     v-loading="flowLoading"
     type="card" style="width: 100%">
-    <el-tab-pane label="graph">
+    <el-tab-pane label="Graph">
         <div id="tg"></div>
     </el-tab-pane>
-    <el-tab-pane label="List">
+    <el-tab-pane label="Tree">
       <el-tree :data="taskList" :props="taskProps"></el-tree>
+    </el-tab-pane>
+    <el-tab-pane label="Executions" v-if="execId==null">
+      <exec :flow="flowId"></exec>
     </el-tab-pane>
     <el-tab-pane label="Logs" v-if="execId!=null">
-      <el-tree :data="taskList" :props="taskProps"></el-tree>
+      to be implemented
     </el-tab-pane>
-
   </el-tabs>
+  </div>
 </template>
 
 <script>
@@ -20,8 +24,12 @@ import API from "@/commons/api";
 import Bus from "@/commons/bus";
 import G6 from "@antv/g6";
 import Plugins from "@antv/g6-plugins";
+import Exec from "@/views/Exec";
 
 export default {
+  components: {
+    Exec
+  },
   props: {
     flowId: {
       required: false
@@ -128,6 +136,11 @@ export default {
       });
       net.changeMode("drag");
       net.read(Util.clone(this.taskGraph));
+      net.node().tooltip( n => {
+        return [
+          ['desp', 'description of ' + n.name],
+        ];
+      })
       net.render();
       this.graph = net
     },
@@ -144,11 +157,11 @@ export default {
             return self.execState[task] == 2 ? 'blue' :
                  self.execState[task] == 3 ? 'green' :
                  self.execState[task] == 4 ? 'red' :
-                 self.execState[task] == 5 ? 'yellow' : 'grey'
+                 self.execState[task] == 5 ? 'orange' : 'grey'
           }
           return self.execState[task] == 3 ? 'green':
-               self.execState[task] == 4 ? 'red' :
-               self.execState[task] == 5 ? 'yellow' : 'grey'
+               self.execState[task] == 4 ? 'orange' :
+               self.execState[task] == 5 ? 'orange' : 'grey'
         })
         this.graph.render();
       }
