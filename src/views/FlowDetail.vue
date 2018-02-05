@@ -4,10 +4,11 @@
     v-loading="flowLoading"
     type="card" style="width: 100%">
     <el-tab-pane label="Graph">
-        <div id="tg"></div>
+      <div id="tg"></div>
     </el-tab-pane>
     <el-tab-pane label="Tree">
-      <el-tree :data="taskList" :props="taskProps"></el-tree>
+      <!-- <el-tree :data="taskList" :props="taskProps"></el-tree> -->
+      <div id="tt"></div>
     </el-tab-pane>
     <el-tab-pane label="Executions" v-if="execId==null">
       <exec :flow="flowId"></exec>
@@ -23,6 +24,7 @@
 import API from "@/commons/api";
 import Bus from "@/commons/bus";
 import G6 from "@antv/g6";
+import G6x from "@/commons/g6";
 import Plugins from "@antv/g6-plugins";
 import Exec from "@/views/Exec";
 
@@ -75,6 +77,37 @@ export default {
         };
       });
     },
+    taskTree() {
+      let notRoot = {}
+      for (let t of this.flow.tasks) {
+        if (t in this.flow.deps) {
+          for (let d of this.flow.deps[t]) {
+            notRoot[d] = t
+          }
+        }
+      }
+      let nodes = this.flow.tasks.filter(t => !(t in notRoot)).map(x => {
+        return {
+          label: x
+        }
+      })
+
+      let root = nodes[0]
+      while(nodes.length > 0) {
+        let node = nodes.shift()
+        if (!(node.label in this.flow.deps) || this.flow.deps[node.label].length == 0) {
+          continue
+        }
+        node.children = this.flow.deps[node.label].map(x => {
+          return {
+            label: x
+          }
+        })
+        nodes = nodes.concat(node.children)
+      }
+
+      return root
+    },
     taskGraph() {
       var nodes = this.flow.tasks.map(task => {
         return {
@@ -85,11 +118,13 @@ export default {
       });
 
       const flowId = this.flow.name
-      nodes.push({
-        id: flowId,
-        label: flowId,
-        shape: "rect",
-      });
+      if (!this.flow.tasks.includes(flowId)) {
+        nodes.push({
+          id: flowId,
+          label: flowId,
+          shape: "rect",
+        });
+      }
 
       var edges = Array.concat(
         ...Object.keys(this.flow.deps).map(target => {
@@ -143,6 +178,40 @@ export default {
       })
       net.render();
       this.graph = net
+    },
+    initTree() {
+      const Util = G6.Util
+      const miniMap = new Plugins["tool.minimap"]();
+      const layoutCfg = {
+        "direction": "LR",
+        "nodeSize": 20,
+        // "rankSep": 400,
+      };
+
+      G6x.registerTreeNode(layoutCfg)
+      
+      const tree = new G6.Tree({
+        id: 'tt',
+        layoutFn: G6.Layouts.Dendrogram,
+        layoutCfg: layoutCfg,
+        width: window.innerWidth,
+        // height: window.innerHeight,
+        fitView: 'lc',
+        behaviourFilter: ['wheelZoom', 'dragBlank', 'dragCanvas'],
+        // fitView: 'autoZoom', // 自动缩放
+        // showButton: false
+        plugins: [miniMap]
+      });
+      tree.source(Util.clone(this.taskTree))
+
+      tree.node()
+          .shape('treeNode')
+          .style({
+            stroke: '#A9BCD3'  
+          });
+      tree.edge().shape('VH');
+
+      tree.render();
     },
     refreshGraph() {
       if (this.graph != null) {
@@ -202,7 +271,9 @@ export default {
       API.LOAD_FLOW.issue({ flow: this.flowId }).then(response => {
         this.flow = response.data;
         this.initGraph()
+        this.initTree()
         this.flowLoading = false
+        console.log(this.taskTree)
       });
     } else {
       API.LOAD_EXEC.issue({ id: this.execId }).then(response => {
