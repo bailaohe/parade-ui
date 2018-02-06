@@ -1,12 +1,36 @@
 <template>
   <div>
+      <el-table v-if="execId!=null"
+        :data="execFlowInfo"
+        style="width: 100%">
+        <el-table-column
+          prop="id"
+          label="#ID">
+        </el-table-column>
+        <el-table-column
+          prop="flow"
+          label="Flow">
+        </el-table-column>
+        <el-table-column
+          prop="startTime"
+          label="Start Time">
+        </el-table-column>
+        <!-- <el-table-column -->
+          <!-- prop="endTime" -->
+          <!-- label="End Time"> -->
+        <!-- </el-table-column> -->
+        <el-table-column
+          prop="status"
+          label="Status">
+        </el-table-column>
+      </el-table>
   <el-tabs 
     v-loading="flowLoading"
     type="card" style="width: 100%">
     <el-tab-pane label="Graph">
       <div id="tg"></div>
     </el-tab-pane>
-    <el-tab-pane label="Tree">
+    <el-tab-pane label="Tree" v-if="execId==null">
       <div id="tt"></div>
     </el-tab-pane>
     <el-tab-pane label="Executions" v-if="execId==null">
@@ -82,18 +106,46 @@ export default {
       // store the snapshot of current executing data
       execSnap: {},
       flowLoading: true,
-
-
-      taskProps: {
-        children: "deps",
-        label: "name"
-      },
-
       graph: null,
-      jobs: []
+      execJobs: [],
+      execFlow: {},
     };
   },
+  watch: {
+    execId: function(e) {
+      if (e != null) {
+        this.flowLoading = true
+        API.LOAD_EXEC.issue({ id: this.execId }).then(response => {
+          this.flow = response.data.flow;
+          this.flowLoading = false
+
+          this.execFlow = response.data.exec.flow
+          this.execJobs = response.data.exec.tasks
+
+          let executing = {}
+          for (let t of this.execJobs) {
+            executing[t['task']] = t['status']
+          }
+          executing[this.flow.name] = this.execFlow['status']
+          vm.$store.commit("updateExecuting", {
+              id: this.execId,
+              data: executing
+          })
+          Bus.$emit('execEvent', {event: 'refresh'})
+        });  
+      }
+    }
+  },
   computed: {
+    execFlowInfo() {
+      return [{
+        id: this.execFlow.id,
+        flow: this.execFlow.flow,
+        startTime: this.execFlow.create_time,
+        status: this.execFlow.status == 3 ? 'Succeeded' :
+                this.execFlow.status == 4 ? 'Failed' : 'Executing'
+      }]
+    },
     taskList() {
       return this.flow.tasks.map((task, idx) => {
         return {
@@ -110,7 +162,7 @@ export default {
       });
     },
     jobList() {
-      return this.jobs.map((t) => {
+      return this.execJobs.map((t) => {
         return {
           id: t.id,
           task: t.task,
@@ -296,6 +348,37 @@ export default {
         })
         this.graph.render();
       }
+    },
+
+    initFlow() {
+      if (this.execId == null) {
+        API.LOAD_FLOW.issue({ flow: this.flowId }).then(response => {
+          this.flow = response.data;
+          this.initGraph()
+          this.initTree()
+          this.flowLoading = false
+        });
+      } else {
+        API.LOAD_EXEC.issue({ id: this.execId }).then(response => {
+          this.flow = response.data.flow;
+          this.initGraph()
+          this.flowLoading = false
+
+          this.execJobs = response.data.exec.tasks
+
+          let executing = {}
+          for (let t of response.data.exec.tasks) {
+            executing[t['task']] = t['status']
+
+          }
+          executing[response.data.flow.name] = response.data.exec.flow['status']
+          vm.$store.commit("updateExecuting", {
+              id: this.execId,
+              data: executing
+          })
+          Bus.$emit('execEvent', {event: 'refresh'})
+        });  
+      }
     }
 
   },
@@ -328,36 +411,7 @@ export default {
       }
       this.refreshGraph()
     })
-
-    if (this.execId == null) {
-      API.LOAD_FLOW.issue({ flow: this.flowId }).then(response => {
-        this.flow = response.data;
-        this.initGraph()
-        this.initTree()
-        this.flowLoading = false
-        console.log(this.taskTree)
-      });
-    } else {
-      API.LOAD_EXEC.issue({ id: this.execId }).then(response => {
-        this.flow = response.data.flow;
-        this.initGraph()
-        this.flowLoading = false
-
-        this.jobs = response.data.exec.tasks
-
-        let executing = {}
-        for (let t of response.data.exec.tasks) {
-          executing[t['task']] = t['status']
-
-        }
-        executing[response.data.flow.name] = response.data.exec.flow['status']
-        vm.$store.commit("updateExecuting", {
-            id: this.execId,
-            data: executing
-        })
-        Bus.$emit('execEvent', {event: 'refresh'})
-      });  
-    }
+    this.initFlow()
   },
 };
 </script>

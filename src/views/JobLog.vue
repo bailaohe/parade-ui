@@ -43,6 +43,10 @@ export default {
 .log-card .el-card__body {
    background: #263238; 
 }
+.log-card .el-card__header {
+    padding-bottom: 4px; 
+    padding-top: 4px; 
+}
 .logtext {
     font-size: 14px;
     white-space: pre-wrap;
