@@ -35,6 +35,14 @@ export default {
         this.logLines = response.data
       })
     }
+  },
+  watch: {
+    execId: function(e) {
+      this.refreshLog()
+    },
+    task: function(e) {
+      this.refreshLog()
+    }
   }
 }
 </script>
