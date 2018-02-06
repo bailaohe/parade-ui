@@ -1,11 +1,12 @@
 <template>
- <el-card class="box-card">
+ <el-card class="log-card">
   <div slot="header" class="logheader">
-    <span style="line-height: 16px;">Job Log</span>
+    <span>Task </span>
+    <el-button type="text" @click='refreshLog'>[{{task}}]</el-button>
     <el-button style="float: right;" type="text" @click='refreshLog'>Refresh</el-button>
   </div>
   <div v-for="line in logLines" :key="line" class="logtext">
-      <pre>{{line}}</pre>
+      <span>{{line}}</span>
   </div>
 </el-card> 
 </template>
@@ -39,8 +40,18 @@ export default {
 </script>
 
 <style>
+.log-card .el-card__body {
+   background: #263238; 
+}
 .logtext {
     font-size: 14px;
+    white-space: pre-wrap;
+    position: relative;
+    font-family: Roboto Mono,monospace!important;
+    font-size: 14px;
+    background: #263238;
+    color: #e9eded;
+    cursor: text;
 }
 .logheader {
     font-size: 16px;

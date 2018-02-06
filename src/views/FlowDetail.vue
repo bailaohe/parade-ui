@@ -358,7 +358,7 @@ export default {
         Bus.$emit('execEvent', {event: 'refresh'})
       });  
     }
-  }
+  },
 };
 </script>
 
