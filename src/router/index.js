@@ -5,6 +5,7 @@ import Index from '@/views/Index'
 import Flow from '@/views/Flow'
 import Exec from '@/views/Exec'
 import FlowDetail from '@/views/FlowDetail'
+import JobLog from '@/views/JobLog'
 
 Vue.use(Router)
 
@@ -39,6 +40,12 @@ export default new Router({
           path: 'exec/:execId',
           name: 'ExecDetail',
           component: FlowDetail,
+          props: true,
+        },
+        {
+          path: 'exec/:execId/:task',
+          name: 'JobLog',
+          component: JobLog,
           props: true,
         }
       ]

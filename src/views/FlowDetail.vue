@@ -7,14 +7,45 @@
       <div id="tg"></div>
     </el-tab-pane>
     <el-tab-pane label="Tree">
-      <!-- <el-tree :data="taskList" :props="taskProps"></el-tree> -->
       <div id="tt"></div>
     </el-tab-pane>
     <el-tab-pane label="Executions" v-if="execId==null">
       <exec :flow="flowId"></exec>
     </el-tab-pane>
-    <el-tab-pane label="Logs" v-if="execId!=null">
-      to be implemented
+    <el-tab-pane label="Jobs" v-if="execId!=null">
+      <el-table
+        :data="jobList"
+        style="width: 100%"
+        :row-class-name="jobColor">
+        <el-table-column
+          prop="id"
+          label="#ID">
+        </el-table-column>
+        <el-table-column
+          prop="task"
+          label="Task">
+        </el-table-column>
+        <el-table-column
+          prop="startTime"
+          label="Start Time">
+        </el-table-column>
+        <el-table-column
+          prop="endTime"
+          label="End Time">
+        </el-table-column>
+        <el-table-column
+          prop="status"
+          label="Status">
+        </el-table-column>
+        <el-table-column label="Operation">
+          <template scope="scope">
+            <el-button
+              size="small"
+              type="info"
+              @click="openLog(scope.row.task)">Logs</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
     </el-tab-pane>
   </el-tabs>
   </div>
@@ -58,7 +89,8 @@ export default {
         label: "name"
       },
 
-      graph: null
+      graph: null,
+      jobs: []
     };
   },
   computed: {
@@ -76,6 +108,21 @@ export default {
               : []
         };
       });
+    },
+    jobList() {
+      return this.jobs.map((t) => {
+        return {
+          id: t.id,
+          task: t.task,
+          startTime: new Date(t.create_time).toLocaleString(),
+          endTime: t.status == 3 || t.status == 4 || t.status == 5 ?
+                      new Date(t.update_time).toLocaleString() : '-',
+          status: t.status == 2 ? 'Executing' :
+                  t.status == 3 ? 'Succeeded' :
+                  t.status == 4 ? 'Failed' :
+                  t.status == 5 ? 'Cancelled' : 'Pending'
+        }
+      })
     },
     taskTree() {
       let notRoot = {}
@@ -151,6 +198,18 @@ export default {
     }
   },
   methods: {
+    jobColor(row, index) {
+      if (row.status == 'Executing') {
+        return 'info-row';
+      } else if (row.status == 'Succeeded') {
+        return 'positive-row';
+      } else if (row.status == 'Failed') {
+        return 'negative-row';
+      } else if (row.status == 'Cancelled') {
+        return 'negative-row';
+      }
+      return '';
+    },
     initGraph() {
       // 第四步：配置G6画布
       const Util = G6.Util
@@ -212,6 +271,9 @@ export default {
       tree.edge().shape('VH');
 
       tree.render();
+    },
+    openLog(task) {
+      this.$router.push({ name: "JobLog", params: { execId: this.execId, task: task} });
     },
     refreshGraph() {
       if (this.graph != null) {
@@ -281,9 +343,12 @@ export default {
         this.initGraph()
         this.flowLoading = false
 
+        this.jobs = response.data.exec.tasks
+
         let executing = {}
         for (let t of response.data.exec.tasks) {
           executing[t['task']] = t['status']
+
         }
         executing[response.data.flow.name] = response.data.exec.flow['status']
         vm.$store.commit("updateExecuting", {
@@ -298,5 +363,15 @@ export default {
 </script>
 
 <style>
+  .el-table .info-row {
+    background: #c9e5f5;
+  }
 
+  .el-table .positive-row {
+    background: #e2f0e4;
+  }
+
+  .el-table .negative-row {
+    background: #f0e4e2;
+  }
 </style>

@@ -25,6 +25,14 @@
           prop="status"
           label="Status">
         </el-table-column>
+            <el-table-column label="Operation">
+      <template scope="scope">
+        <el-button
+          size="small"
+          type="info"
+          @click="openExec(scope.row.flow, scope.row.id)">Detail</el-button>
+      </template>
+    </el-table-column>
       </el-table>
     </el-row>
     <el-row>
@@ -94,7 +102,9 @@
         }
         return '';
       },
-      
+      openExec(flow, execId) {
+        this.$router.push({ name: "ExecDetail", params: { flowId: flow, execId: execId } });
+      },
       listExec() {
         this.listLoading = true;
         let param = {pageSize: this.pageSize, pageNo: this.pageNo}

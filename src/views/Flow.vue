@@ -21,13 +21,6 @@
       label="Description"
       prop="desc">
     </el-table-column>
-    <!-- <el-table-column
-      label="last execute.">
-      <template scope="scope">
-        <el-icon name="time"></el-icon>
-        <span style="margin-left: 10px">{{ scope.row.date }}</span>
-      </template>
-    </el-table-column> -->
     <el-table-column label="Operation">
       <template scope="scope">
         <el-button
@@ -35,10 +28,6 @@
           size="small"
           type="success"
           @click="execFlow(scope.$index, scope.row)">Run</el-button>
-        <!-- <el-button
-          size="small"
-          type="info"
-          @click="handleFlowEdit(scope.$index, scope.row)">Edit</el-button> -->
         <el-button
           size="small"
           type="danger"

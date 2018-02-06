@@ -9,6 +9,7 @@ export default class API {
 
     static LIST_EXEC = new API("/api/exec", "get", "取得执行列表")
     static LOAD_EXEC = new API("/api/exec/${id}", "get", "取得执行详情")
+    static LOAD_LOG = new API("/api/exec/${execId}/${task}", "get", "取得任务日志")
     
     constructor(uri, method, validator=function(){return true}) {
         this.uri = uri
