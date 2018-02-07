@@ -117,9 +117,9 @@
             return {
               id: exec.id,
               flow: exec.flow,
-              startTime: new Date(exec.create_time).toLocaleString(),
+              startTime: exec.create_time,
               endTime: exec.status == 3 || exec.status == 4 ?
-                      new Date(exec.update_time).toLocaleString() : '-',
+                      exec.update_time : '-',
               status: exec.status == 3 ? 'Succeeded' :
                       exec.status == 4 ? 'Failed' : 'Executing'
             };

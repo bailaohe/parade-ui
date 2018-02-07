@@ -166,9 +166,9 @@ export default {
         return {
           id: t.id,
           task: t.task,
-          startTime: new Date(t.create_time).toLocaleString(),
+          startTime: t.create_time,
           endTime: t.status == 3 || t.status == 4 || t.status == 5 ?
-                      new Date(t.update_time).toLocaleString() : '-',
+                      t.update_time : '-',
           status: t.status == 2 ? 'Executing' :
                   t.status == 3 ? 'Succeeded' :
                   t.status == 4 ? 'Failed' :
@@ -275,7 +275,7 @@ export default {
         id: "tg", // 容器ID
         width: window.innerWidth, // 画布宽
         height: 600, // 画布高
-        fitView: "cc",
+        fitView: "autoZoom",
         // grid: null,
         // useAnchor: false,
         plugins: [miniMap, dagre]
