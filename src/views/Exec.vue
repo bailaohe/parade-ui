@@ -25,14 +25,14 @@
           prop="status"
           label="Status">
         </el-table-column>
-            <el-table-column label="Operation">
-      <template scope="scope">
-        <el-button
-          size="small"
-          type="info"
-          @click="openExec(scope.row.flow, scope.row.id)">Detail</el-button>
-      </template>
-    </el-table-column>
+        <el-table-column label="Operation">
+          <template scope="scope">
+            <el-button
+              size="small"
+              type="info"
+              @click="openExec(scope.row.flow, scope.row.id)">Detail</el-button>
+          </template>
+        </el-table-column>
       </el-table>
     </el-row>
     <el-row>
