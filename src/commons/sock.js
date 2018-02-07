@@ -1,6 +1,7 @@
 import io from 'socket.io-client';
 import API from "@/commons/api";
 import Bus from '@/commons/bus'
+import config from '@/commons/settings'
 
 
 export default class SocketChannel {
@@ -31,7 +32,7 @@ export default class SocketChannel {
     }
 
     open(query) {
-        const socket = io.connect('http://localhost:9999' + this.namespace)
+        const socket = io.connect(config.server + this.namespace)
         socket.on('connect', function () {
             socket.emit('query', query)
         });

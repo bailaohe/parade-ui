@@ -1,4 +1,5 @@
 import axios from 'axios'
+import config from '@/commons/settings'
 
 export default class API {
 
@@ -18,10 +19,11 @@ export default class API {
     }
 
     issue(params={}, data={}) {
-        var uri = API.replacer(this.uri, params)
+        let uri = API.replacer(this.uri, params)
 
         return axios.request({
-            url: 'http://localhost:9999' + uri,
+            // url: config[process.env]['server'] + uri,
+            url: config.server + uri,
             method: this.method,
             params: params,
             data: data
