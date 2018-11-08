@@ -1,6 +1,6 @@
 let settings = {
     'development': {
-        'server': 'http://localhost:9999'
+        'server': 'http://116.62.201.139:5000'
     },
     'production': {
         'server': ''

@@ -108,43 +108,32 @@ export default {
       flowLoading: true,
       graph: null,
       execJobs: [],
-      execFlow: {},
+      execFlow: {}
     };
   },
   watch: {
     execId: function(e) {
       if (e != null) {
-        this.flowLoading = true
-        API.LOAD_EXEC.issue({ id: this.execId }).then(response => {
-          this.flow = response.data.flow;
-          this.flowLoading = false
-
-          this.execFlow = response.data.exec.flow
-          this.execJobs = response.data.exec.tasks
-
-          let executing = {}
-          for (let t of this.execJobs) {
-            executing[t['task']] = t['status']
-          }
-          executing[this.flow.name] = this.execFlow['status']
-          vm.$store.commit("updateExecuting", {
-              id: this.execId,
-              data: executing
-          })
-          Bus.$emit('execEvent', {event: 'refresh'})
-        });  
+        this.execFlow = {};
+        this.getTasklist();
       }
     }
   },
   computed: {
     execFlowInfo() {
-      return [{
-        id: this.execFlow.id,
-        flow: this.execFlow.flow,
-        startTime: this.execFlow.create_time,
-        status: this.execFlow.status == 3 ? 'Succeeded' :
-                this.execFlow.status == 4 ? 'Failed' : 'Executing'
-      }]
+      return [
+        {
+          id: this.execFlow.id,
+          flow: this.execFlow.flow,
+          startTime: this.execFlow.create_time,
+          status:
+            this.execFlow.status == 3
+              ? "Succeeded"
+              : this.execFlow.status == 4
+                ? "Failed"
+                : "Executing"
+        }
+      ];
     },
     taskList() {
       return this.flow.tasks.map((task, idx) => {
@@ -162,66 +151,77 @@ export default {
       });
     },
     jobList() {
-      return this.execJobs.map((t) => {
+      return this.execJobs.map(t => {
         return {
           id: t.id,
           task: t.task,
           startTime: t.start_time,
-          endTime: t.status == 3 || t.status == 4 || t.status == 5 ?
-                      t.update_time : '-',
-          status: t.status == 2 ? 'Executing' :
-                  t.status == 3 ? 'Succeeded' :
-                  t.status == 4 ? 'Failed' :
-                  t.status == 5 ? 'Cancelled' : 'Pending'
-        }
-      })
+          endTime:
+            t.status == 3 || t.status == 4 || t.status == 5
+              ? t.update_time
+              : "-",
+          status:
+            t.status == 2
+              ? "Executing"
+              : t.status == 3
+                ? "Succeeded"
+                : t.status == 4
+                  ? "Failed"
+                  : t.status == 5
+                    ? "Cancelled"
+                    : "Pending"
+        };
+      });
     },
     taskTree() {
-      let notRoot = {}
+      let notRoot = {};
       for (let t of this.flow.tasks) {
         if (t in this.flow.deps) {
           for (let d of this.flow.deps[t]) {
-            notRoot[d] = t
+            notRoot[d] = t;
           }
         }
       }
       let nodes = this.flow.tasks.filter(t => !(t in notRoot)).map(x => {
         return {
           label: x
-        }
-      })
+        };
+      });
 
-      let root = nodes[0]
-      while(nodes.length > 0) {
-        let node = nodes.shift()
-        if (!(node.label in this.flow.deps) || this.flow.deps[node.label].length == 0) {
-          continue
+      let root = nodes[0];
+      while (nodes.length > 0) {
+        let node = nodes.shift();
+        if (
+          !(node.label in this.flow.deps) ||
+          this.flow.deps[node.label].length == 0
+        ) {
+          continue;
         }
         node.children = this.flow.deps[node.label].map(x => {
           return {
             label: x
-          }
-        })
-        nodes = nodes.concat(node.children)
+          };
+        });
+        nodes = nodes.concat(node.children);
       }
 
-      return root
+      return root;
     },
     taskGraph() {
       var nodes = this.flow.tasks.map(task => {
         return {
           id: task,
           label: task,
-          shape: "rect",
+          shape: "rect"
         };
       });
 
-      const flowId = this.flow.name
+      const flowId = this.flow.name;
       if (!this.flow.tasks.includes(flowId)) {
         nodes.push({
           id: flowId,
           label: flowId,
-          shape: "rect",
+          shape: "rect"
         });
       }
 
@@ -238,33 +238,36 @@ export default {
       );
 
       return {
-        "source": {
-          "nodes": nodes,
-          "edges": edges
+        source: {
+          nodes: nodes,
+          edges: edges
         }
-      }
+      };
     },
     execState() {
-      let curState = this.execId != null ? this.$store.getters.getExecuting(this.execId) : {}
-      return curState
+      let curState =
+        this.execId != null
+          ? this.$store.getters.getExecuting(this.execId)
+          : {};
+      return curState;
     }
   },
   methods: {
     jobColor(row, index) {
-      if (row.status == 'Executing') {
-        return 'info-row';
-      } else if (row.status == 'Succeeded') {
-        return 'positive-row';
-      } else if (row.status == 'Failed') {
-        return 'negative-row';
-      } else if (row.status == 'Cancelled') {
-        return 'negative-row';
+      if (row.status == "Executing") {
+        return "info-row";
+      } else if (row.status == "Succeeded") {
+        return "positive-row";
+      } else if (row.status == "Failed") {
+        return "negative-row";
+      } else if (row.status == "Cancelled") {
+        return "negative-row";
       }
-      return '';
+      return "";
     },
     initGraph() {
       // 第四步：配置G6画布
-      const Util = G6.Util
+      const Util = G6.Util;
       const miniMap = new Plugins["tool.minimap"]();
       const dagre = new Plugins["layout.dagre"]({
         rankdir: "TB",
@@ -282,70 +285,81 @@ export default {
       });
       net.changeMode("drag");
       net.read(Util.clone(this.taskGraph));
-      net.node().tooltip( n => {
-        return [
-          ['desp', 'description of ' + n.name],
-        ];
-      })
+      net.node().tooltip(n => {
+        return [["desp", "description of " + n.name]];
+      });
       net.render();
-      this.graph = net
+      this.graph = net;
     },
     initTree() {
-      const Util = G6.Util
+      const Util = G6.Util;
       const miniMap = new Plugins["tool.minimap"]();
       const layoutCfg = {
-        "direction": "LR",
-        "nodeSize": 20,
+        direction: "LR",
+        nodeSize: 20
         // "rankSep": 400,
       };
 
-      G6x.registerTreeNode(layoutCfg)
-      
+      G6x.registerTreeNode(layoutCfg);
+
       const tree = new G6.Tree({
-        id: 'tt',
+        id: "tt",
         layoutFn: G6.Layouts.Dendrogram,
         layoutCfg: layoutCfg,
         width: window.innerWidth,
         // height: window.innerHeight,
-        fitView: 'lc',
-        behaviourFilter: ['wheelZoom', 'dragBlank', 'dragCanvas'],
+        fitView: "lc",
+        behaviourFilter: ["wheelZoom", "dragBlank", "dragCanvas"],
         // fitView: 'autoZoom', // 自动缩放
         // showButton: false
         plugins: [miniMap]
       });
-      tree.source(Util.clone(this.taskTree))
+      tree.source(Util.clone(this.taskTree));
 
-      tree.node()
-          .shape('treeNode')
-          .style({
-            stroke: '#A9BCD3'  
-          });
-      tree.edge().shape('VH');
+      tree
+        .node()
+        .shape("treeNode")
+        .style({
+          stroke: "#A9BCD3"
+        });
+      tree.edge().shape("VH");
 
       tree.render();
     },
     openLog(task) {
-      this.$router.push({ name: "JobLog", params: { execId: this.execId, task: task} });
+      this.$router.push({
+        name: "JobLog",
+        params: { execId: this.execId, task: task }
+      });
     },
     refreshGraph() {
       if (this.graph != null) {
-        const Util = G6.Util
+        const Util = G6.Util;
         this.graph.clear();
         this.graph.read(Util.clone(this.taskGraph));
 
-        let self = this
+        let self = this;
         this.graph.node().color(n => {
-          const task = n.id
+          const task = n.id;
           if (task != self.flow.name) {
-            return self.execState[task] == 2 ? 'blue' :
-                 self.execState[task] == 3 ? 'green' :
-                 self.execState[task] == 4 ? 'red' :
-                 self.execState[task] == 5 ? 'orange' : 'grey'
+            return self.execState[task] == 2
+              ? "blue"
+              : self.execState[task] == 3
+                ? "green"
+                : self.execState[task] == 4
+                  ? "red"
+                  : self.execState[task] == 5
+                    ? "orange"
+                    : "grey";
           }
-          return self.execState[task] == 3 ? 'green':
-               self.execState[task] == 4 ? 'orange' :
-               self.execState[task] == 5 ? 'orange' : 'grey'
-        })
+          return self.execState[task] == 3
+            ? "green"
+            : self.execState[task] == 4
+              ? "orange"
+              : self.execState[task] == 5
+                ? "orange"
+                : "grey";
+        });
         this.graph.render();
       }
     },
@@ -354,78 +368,98 @@ export default {
       if (this.execId == null) {
         API.LOAD_FLOW.issue({ flow: this.flowId }).then(response => {
           this.flow = response.data;
-          this.initGraph()
-          this.initTree()
-          this.flowLoading = false
+          this.initGraph();
+          this.initTree();
+          this.flowLoading = false;
         });
       } else {
         API.LOAD_EXEC.issue({ id: this.execId }).then(response => {
           this.flow = response.data.flow;
-          this.initGraph()
-          this.flowLoading = false
+          this.initGraph();
+          this.flowLoading = false;
 
-          this.execJobs = response.data.exec.tasks
+          this.execJobs = response.data.exec.tasks;
 
-          let executing = {}
+          let executing = {};
           for (let t of response.data.exec.tasks) {
-            executing[t['task']] = t['status']
-
+            executing[t["task"]] = t["status"];
           }
-          executing[response.data.flow.name] = response.data.exec.flow['status']
+          executing[response.data.flow.name] =
+            response.data.exec.flow["status"];
           vm.$store.commit("updateExecuting", {
-              id: this.execId,
-              data: executing
-          })
-          Bus.$emit('execEvent', {event: 'refresh'})
-        });  
+            id: this.execId,
+            data: executing
+          });
+          Bus.$emit("execEvent", { event: "refresh" });
+        });
       }
-    }
+    },
+    getTasklist() {
+      this.flowLoading = true;
+      API.LOAD_EXEC.issue({ id: this.execId }).then(response => {
+        this.flow = response.data.flow;
+        this.flowLoading = false;
+        this.execFlow = response.data.exec.flow;
+        this.execJobs = response.data.exec.tasks;
 
+        let executing = {};
+        for (let t of this.execJobs) {
+          executing[t["task"]] = t["status"];
+        }
+        executing[this.flow.name] = this.execFlow["status"];
+        vm.$store.commit("updateExecuting", {
+          id: this.execId,
+          data: executing
+        });
+        Bus.$emit("execEvent", { event: "refresh" });
+      });
+    }
   },
   mounted() {
     Bus.$on("execEvent", payload => {
-      if (payload.event == 'task-started') {
+      if (payload.event == "task-started") {
         this.$notify({
-          title: 'task started',
+          title: "task started",
           message: `task [${payload.task}] started`,
-          type: 'info'
-        })
-      } else if (payload.event == 'task-succeeded') {
+          type: "info"
+        });
+      } else if (payload.event == "task-succeeded") {
         this.$notify({
-          title: 'task succeeded',
+          title: "task succeeded",
           message: `task [${payload.task}] succeeded`,
-          type: 'success'
-        })
-      } else if (payload.event == 'task-failed') {
+          type: "success"
+        });
+      } else if (payload.event == "task-failed") {
         this.$notify({
-          title: 'task failed',
+          title: "task failed",
           message: `task [${payload.task}] failed`,
-          type: 'error'
-        })
-      } else if (payload.event == 'task-cancelled') {
+          type: "error"
+        });
+      } else if (payload.event == "task-cancelled") {
         this.$notify({
-          title: 'task cancelled',
+          title: "task cancelled",
           message: `task [${payload.task}] cancelled`,
-          type: 'error'
-        })
+          type: "error"
+        });
       }
-      this.refreshGraph()
-    })
-    this.initFlow()
-  },
+      this.refreshGraph();
+    });
+    this.initFlow();
+    this.getTasklist();
+  }
 };
 </script>
 
 <style>
-  .el-table .info-row {
-    background: #c9e5f5;
-  }
+.el-table .info-row {
+  background: #c9e5f5;
+}
 
-  .el-table .positive-row {
-    background: #e2f0e4;
-  }
+.el-table .positive-row {
+  background: #e2f0e4;
+}
 
-  .el-table .negative-row {
-    background: #f0e4e2;
-  }
+.el-table .negative-row {
+  background: #f0e4e2;
+}
 </style>
