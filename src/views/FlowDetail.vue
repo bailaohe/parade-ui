@@ -24,18 +24,9 @@
           label="Status">
         </el-table-column>
       </el-table>
-  <el-tabs 
+  <el-tabs
     v-loading="flowLoading"
     type="card" style="width: 100%">
-    <el-tab-pane label="Graph">
-      <div id="tg"></div>
-    </el-tab-pane>
-    <el-tab-pane label="Tree" v-if="execId==null">
-      <div id="tt"></div>
-    </el-tab-pane>
-    <el-tab-pane label="Executions" v-if="execId==null">
-      <exec :flow="flowId"></exec>
-    </el-tab-pane>
     <el-tab-pane label="Jobs" v-if="execId!=null">
       <el-table
         :data="jobList"
@@ -70,6 +61,15 @@
           </template>
         </el-table-column>
       </el-table>
+    </el-tab-pane>
+    <el-tab-pane label="Graph">
+      <div id="tg"></div>
+    </el-tab-pane>
+    <el-tab-pane label="Tree" v-if="execId==null">
+      <div id="tt"></div>
+    </el-tab-pane>
+    <el-tab-pane label="Executions" v-if="execId==null">
+      <exec :flow="flowId"></exec>
     </el-tab-pane>
   </el-tabs>
   </div>
