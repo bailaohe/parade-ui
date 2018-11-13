@@ -445,7 +445,9 @@ export default {
       this.refreshGraph();
     });
     this.initFlow();
-    this.getTasklist();
+    if (this.execId != null) {
+      this.getTasklist();
+    }
   }
 };
 </script>
