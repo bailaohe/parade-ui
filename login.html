@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>parade-ui</title>
+
+  <script src="http://cdn.bootcss.com/blueimp-md5/1.1.0/js/md5.js"></script> 
+  <script language="javascript">
+    function loginIn() {
+      if (CheckPost()) {
+        paradeLogin.password.value = md5(paradeLogin.password.value)
+        paradeLogin.submit();
+      }
+    }
+
+    function CheckPost() {
+      if (paradeLogin.username.value == "") {
+        alert("username not provided");
+        paradeLogin.username.focus();
+        return false;
+      }
+      if (paradeLogin.password.value == "") {
+        alert("password not provided");
+        paradeLogin.password.focus();
+        return false;
+      }
+      return true;
+    }
+  </script>
+
+  <style>
+    #login {
+      position: absolute;
+      top: 0;
+      right: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #2c3e50;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-content: center;
+      z-index: 0;
+    }
+
+    #login .content {
+      display: flex;
+      flex-direction: column;
+      margin-top: -4rem;
+      z-index: 11;
+      align-items: center;
+    }
+
+    #login .content .title {
+      font-size: 0.72rem;
+      color: #fff;
+    }
+
+    #login .login-box {
+      z-index: 11;
+      margin-top: 0.8rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #login .login-box .login-form {
+      font-size: 0.32rem;
+      width: 7.2rem;
+    }
+
+    #login .login-box .login-form .groups-input {
+      border: 0.02rem solid #d5d5d5;
+      width: 100%;
+      border-radius: 0.06rem;
+    }
+
+    #login .login-box .login-form .groups-input .input-wrapper {
+      background: #fff;
+      display: flex;
+      width: 100%;
+    }
+
+    #login .login-box .login-form .groups-input .input-wrapper .icon {
+      line-height: 1rem;
+      margin-left: 0.3rem;
+      color: #0f88eb;
+    }
+
+    #login .login-box .login-form .groups-input .input-wrapper input {
+      line-height: 0.38rem;
+      width: 100%;
+      padding: 1em .8em;
+    }
+
+    #login .login-box .login-form .groups-input .username {
+      border-bottom: 1px solid #d5d5d5;
+    }
+
+    #login .login-box .login-form .button-wrapper {
+      margin-top: 0.44rem;
+    }
+
+    #login .login-box .login-form .button-wrapper .sign-button {
+      cursor: pointer;
+      background: #0f88eb;
+      box-shadow: none;
+      border: 0;
+      border-radius: 0.06rem;
+      line-height: 0.82rem;
+      color: #fff;
+      width: 100%;
+      font-size: 0.32rem;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="login">
+    <Background container="login"></Background>
+    <div class="content">
+      <span class="title">
+        Parade Admin
+      </span>
+    </div>
+
+    <div class="login-box">
+      <form class="login-form" name="paradeLogin" action="/">
+        <div class="groups-input">
+          <div class="username input-wrapper">
+            <span class="iconfont icon">&#xe600;</span>
+            <input type="text" name="username" placeholder="Username" v-model="username" autocomplete="off">
+          </div>
+          <div class="password input-wrapper">
+            <span class="iconfont icon">&#xe628;</span>
+            <input type="password" name="password" placeholder="Password" v-model="password" autocomplete="off" @keyup.enter="loginInByEnter">
+          </div>
+        </div>
+        <div class="button-wrapper">
+          <button type="button" class="sign-button" onclick="loginIn();">
+            Login
+          </button>
+
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+<style>
+  html {
+    font-size: 312.5%;
+  }
+</style>
+</html>
