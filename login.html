@@ -9,6 +9,14 @@
   <script language="javascript">
     function loginIn() {
       if (CheckPost()) {
+        var url = new URL(window.location.href);
+        var next = url.searchParams.get("next");
+
+        if (next != null && next != "") {
+          paradeLogin.action += '?next=' + next
+        }
+
+
         paradeLogin.password.value = md5(paradeLogin.password.value)
         paradeLogin.submit();
       }
@@ -127,8 +135,12 @@
     </div>
 
     <div class="login-box">
-      <form class="login-form" name="paradeLogin" action="/">
+      <form class="login-form" name="paradeLogin" method="post" action="/auth/login-redirect">
         <div class="groups-input">
+<!--           <div class="username input-wrapper" style="display: none;">
+            <span class="iconfont icon">&#xe600;</span>
+            <input id='next' type="text" name="next" value=""  autocomplete="off">
+          </div> -->
           <div class="username input-wrapper">
             <span class="iconfont icon">&#xe600;</span>
             <input type="text" name="username" placeholder="Username" v-model="username" autocomplete="off">
