@@ -50,6 +50,7 @@
         </el-table-column>
         <el-table-column
           prop="duration"
+          sortable
           label="Duration(seconds)">
         </el-table-column>
         <el-table-column
