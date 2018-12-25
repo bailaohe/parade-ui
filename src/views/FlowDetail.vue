@@ -49,6 +49,10 @@
           label="End Time">
         </el-table-column>
         <el-table-column
+          prop="duration"
+          label="Duration(seconds)">
+        </el-table-column>
+        <el-table-column
           prop="status"
           label="Status">
         </el-table-column>
@@ -160,6 +164,10 @@ export default {
             t.status == 3 || t.status == 4 || t.status == 5
               ? t.update_time
               : "-",
+          duration:
+            (t.status == 3 || t.status == 4 || t.status == 5
+              ? Math.round(new Date(t.update_time).getTime()/1000)
+              : Math.round(new Date().getTime()/1000)) -Math.round(new Date(t.start_time).getTime()/1000), 
           status:
             t.status == 2
               ? "Executing"
